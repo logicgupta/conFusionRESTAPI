@@ -1,4 +1,3 @@
-
 const express=require('express');
 const http =require('http');
 const morgan = require('morgan');
@@ -9,6 +8,8 @@ const session=require('express-session');
 const FileStore=require('session-file-store')(session);
 const mongoose = require('mongoose');
 const users=require('./users');
+const passport=require('passport');
+const authenticate=require('./sessions/authenticate');
 
 const hostname="localhost";
 const portNumber=3000;
@@ -34,6 +35,10 @@ app.use(session({
     resave:false,
     store:new FileStore()
 }));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use(express.static(__dirname + '/public'));
 
 app.use('/',users);
@@ -41,20 +46,13 @@ app.use('/',users);
 function auth (req, res, next) {
     console.log(req.session);
 
-  if(!req.session.user) {
+  if(!req.user) {
       var err = new Error('You are not authenticated  !');
       err.status = 403;
       return next(err);
   }
   else {
-    if (req.session.user === 'authenticated') {
-      next();
-    }
-    else {
-      var err = new Error('You are not authenticated!');
-      err.status = 403;
-      return next(err);
-    }
+    next();
   }
 }
 
